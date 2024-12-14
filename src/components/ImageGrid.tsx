@@ -31,18 +31,18 @@ export const ImageGrid: React.FC<ImageGridProps> = ({
       {images.map((image) => (
         <div
           key={image.id}
-          className="image-card group cursor-pointer"
+          className="image-card"
           onClick={() => onImageClick(image.id)}
         >
+          <div className="p-2 text-sm text-gray-600 truncate border-b">
+            {image.file.name}
+          </div>
           <div className="relative w-full">
             <CropOverlay
               imageUrl={image.url}
               defaultAspectRatio={interactedImages.has(image.id) ? aspectRatio : "1:1"}
               onCropChange={(crop) => onCropChange(image.id, crop)}
             />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
-              <p className="text-sm">{image.file.name}</p>
-            </div>
           </div>
         </div>
       ))}
