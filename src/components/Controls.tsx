@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AspectRatioControl } from './AspectRatioControl';
 
 interface ControlsProps {
   format: string;
   quality: number;
+  aspectRatio: string;
   onFormatChange: (format: string) => void;
   onQualityChange: (quality: number) => void;
+  onAspectRatioChange: (ratio: string) => void;
   onDownload: () => void;
   hasImages: boolean;
 }
@@ -17,13 +20,20 @@ interface ControlsProps {
 export const Controls: React.FC<ControlsProps> = ({
   format,
   quality,
+  aspectRatio,
   onFormatChange,
   onQualityChange,
+  onAspectRatioChange,
   onDownload,
   hasImages
 }) => {
   return (
     <div className="space-y-6 p-6">
+      <AspectRatioControl
+        value={aspectRatio}
+        onChange={onAspectRatioChange}
+      />
+
       <div className="space-y-2">
         <Label>Format</Label>
         <Select value={format} onValueChange={onFormatChange}>

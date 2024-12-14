@@ -6,11 +6,21 @@ import { Controls } from '../components/Controls';
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { toast } from "sonner";
+import { PixelCrop } from 'react-image-crop';
+
+interface ImageData {
+  id: string;
+  url: string;
+  file: File;
+  crop?: PixelCrop;
+}
 
 const Index = () => {
-  const [images, setImages] = useState<{ id: string; url: string; file: File }[]>([]);
+  const [images, setImages] = useState<ImageData[]>([]);
   const [format, setFormat] = useState('image/png');
   const [quality, setQuality] = useState(90);
+  const [aspectRatio, setAspectRatio] = useState('1:1');
+  const [interactedImages] = useState(new Set<string>());
 
   const handleFilesAccepted = useCallback((files: File[]) => {
     const newImages = files.map(file => ({
@@ -23,7 +33,16 @@ const Index = () => {
 
   const handleImageClick = (id: string) => {
     console.log('Image clicked:', id);
-    // Future enhancement: implement image editing
+    interactedImages.add(id);
+  };
+
+  const handleCropChange = (id: string, crop: PixelCrop) => {
+    setImages(prev =>
+      prev.map(img =>
+        img.id === id ? { ...img, crop } : img
+      )
+    );
+    console.log(`Crop updated for image ${id}:`, crop);
   };
 
   const handleDownload = async () => {
@@ -36,9 +55,25 @@ const Index = () => {
         img.src = image.url;
         await new Promise((resolve) => {
           img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx?.drawImage(img, 0, 0);
+            if (image.crop) {
+              canvas.width = image.crop.width;
+              canvas.height = image.crop.height;
+              ctx?.drawImage(
+                img,
+                image.crop.x,
+                image.crop.y,
+                image.crop.width,
+                image.crop.height,
+                0,
+                0,
+                image.crop.width,
+                image.crop.height
+              );
+            } else {
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx?.drawImage(img, 0, 0);
+            }
             
             canvas.toBlob(
               (blob) => {
@@ -78,8 +113,10 @@ const Index = () => {
             <Controls
               format={format}
               quality={quality}
+              aspectRatio={aspectRatio}
               onFormatChange={setFormat}
               onQualityChange={setQuality}
+              onAspectRatioChange={setAspectRatio}
               onDownload={handleDownload}
               hasImages={images.length > 0}
             />
@@ -89,7 +126,13 @@ const Index = () => {
         <main className="flex-1 p-6">
           <Dropzone onFilesAccepted={handleFilesAccepted} />
           <div className="mt-6">
-            <ImageGrid images={images} onImageClick={handleImageClick} />
+            <ImageGrid
+              images={images}
+              onImageClick={handleImageClick}
+              aspectRatio={aspectRatio}
+              onCropChange={handleCropChange}
+              interactedImages={interactedImages}
+            />
           </div>
         </main>
       </div>

@@ -59,3 +59,20 @@
 .dropzone.active {
   @apply border-primary bg-primary/5;
 }
+
+/* React Image Crop custom styles */
+.ReactCrop {
+  @apply w-full h-full;
+}
+
+.ReactCrop__crop-selection {
+  @apply border-2 border-white;
+}
+
+.ReactCrop__drag-handle {
+  @apply bg-white/80;
+}
+
+.ReactCrop__drag-handle::after {
+  @apply bg-white/80;
+}

@@ -1,12 +1,23 @@
 import React from 'react';
+import { CropOverlay } from './CropOverlay';
+import { PixelCrop } from 'react-image-crop';
 import { toast } from "sonner";
 
 interface ImageGridProps {
   images: { id: string; url: string; file: File }[];
   onImageClick: (id: string) => void;
+  aspectRatio: string;
+  onCropChange: (id: string, crop: PixelCrop) => void;
+  interactedImages: Set<string>;
 }
 
-export const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick }) => {
+export const ImageGrid: React.FC<ImageGridProps> = ({
+  images,
+  onImageClick,
+  aspectRatio,
+  onCropChange,
+  interactedImages
+}) => {
   if (images.length === 0) {
     return (
       <div className="flex items-center justify-center h-[200px] text-gray-500">
@@ -24,13 +35,10 @@ export const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick }) =>
           onClick={() => onImageClick(image.id)}
         >
           <div className="relative w-full">
-            <img
-              src={image.url}
-              alt={`Uploaded ${image.file.name}`}
-              className="w-full"
-              onLoad={(e) => {
-                console.log(`Image loaded: ${image.file.name}`);
-              }}
+            <CropOverlay
+              imageUrl={image.url}
+              defaultAspectRatio={interactedImages.has(image.id) ? aspectRatio : "1:1"}
+              onCropChange={(crop) => onCropChange(image.id, crop)}
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
               <p className="text-sm">{image.file.name}</p>
