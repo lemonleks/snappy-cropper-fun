@@ -44,7 +44,7 @@
 }
 
 .image-card {
-  @apply relative overflow-hidden rounded-lg bg-white shadow-md transition-transform duration-200 hover:scale-[1.02];
+  @apply relative overflow-hidden rounded-lg bg-white shadow-md;
   aspect-ratio: auto;
   display: flex;
   flex-direction: column;
