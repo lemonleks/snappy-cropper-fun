@@ -45,10 +45,11 @@
 
 .image-card {
   @apply relative overflow-hidden rounded-lg bg-white shadow-md transition-transform duration-200 hover:scale-[1.02];
+  aspect-ratio: auto;
 }
 
 .image-card img {
-  @apply w-full h-full object-cover;
+  @apply w-full h-auto object-contain;
 }
 
 .dropzone {

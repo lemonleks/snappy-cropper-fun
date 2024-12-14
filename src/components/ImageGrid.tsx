@@ -23,13 +23,18 @@ export const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick }) =>
           className="image-card group cursor-pointer"
           onClick={() => onImageClick(image.id)}
         >
-          <img
-            src={image.url}
-            alt={`Uploaded ${image.file.name}`}
-            className="aspect-square"
-          />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
-            <p className="text-sm">{image.file.name}</p>
+          <div className="relative w-full">
+            <img
+              src={image.url}
+              alt={`Uploaded ${image.file.name}`}
+              className="w-full"
+              onLoad={(e) => {
+                console.log(`Image loaded: ${image.file.name}`);
+              }}
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
+              <p className="text-sm">{image.file.name}</p>
+            </div>
           </div>
         </div>
       ))}

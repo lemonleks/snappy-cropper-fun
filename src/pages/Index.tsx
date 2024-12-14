@@ -70,7 +70,7 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <Sidebar defaultCollapsed={false}>
+        <Sidebar>
           <SidebarHeader className="border-b px-6 py-4">
             <h2 className="text-lg font-semibold">Image Controls</h2>
           </SidebarHeader>
