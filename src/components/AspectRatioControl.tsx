@@ -37,7 +37,6 @@ export const AspectRatioControl: React.FC<AspectRatioControlProps> = ({
   if (compact) {
     return (
       <div className="space-y-2">
-        <Label className="text-xs">Aspect Ratio</Label>
         <Tabs value={value} onValueChange={onChange} className="w-full">
           <TabsList className="grid w-full grid-cols-5">
             {aspectRatioOptions.map((option) => (
@@ -57,7 +56,6 @@ export const AspectRatioControl: React.FC<AspectRatioControlProps> = ({
 
   return (
     <div className="space-y-3">
-      <Label>Aspect Ratio</Label>
       <Tabs value={value} onValueChange={onChange} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           {aspectRatioOptions.map((option) => (
