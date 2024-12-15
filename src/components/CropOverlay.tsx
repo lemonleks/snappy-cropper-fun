@@ -21,6 +21,11 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
     const { width, height } = e.currentTarget;
     console.log(`Image loaded with dimensions: ${width}x${height}`);
 
+    // If crop is already set, don't override it
+    if (crop) {
+      return;
+    }
+
     const aspectRatio = aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio || 1;
     
     // Calculate the maximum possible crop dimensions while maintaining aspect ratio
@@ -55,8 +60,10 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
   return (
     <ReactCrop
       crop={crop}
-      onChange={(c) => setCrop(c)}
-      onComplete={(c) => onCropChange(c)}
+      onChange={(c) => {
+        setCrop(c);
+        onCropChange(c);
+      }}
       aspect={aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio}
       className="max-w-full h-auto"
       locked={true}
