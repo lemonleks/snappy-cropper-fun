@@ -23,10 +23,12 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
 
     // If crop is already set, don't override it
     if (crop) {
+      console.log('Crop already exists, keeping current crop:', crop);
       return;
     }
 
     const aspectRatio = aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio || 1;
+    console.log('Using aspect ratio:', aspectRatio, 'from defaultAspectRatio:', defaultAspectRatio);
     
     // Calculate the maximum possible crop dimensions while maintaining aspect ratio
     let cropWidth, cropHeight;
@@ -53,18 +55,23 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
       height: cropHeight
     };
 
+    console.log('Setting initial crop:', newCrop);
     setCrop(newCrop);
     onCropChange(newCrop as PixelCrop);
   };
+
+  // Get current aspect ratio
+  const currentAspectRatio = aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio;
 
   return (
     <ReactCrop
       crop={crop}
       onChange={(c) => {
+        console.log('Crop changed:', c);
         setCrop(c);
         onCropChange(c);
       }}
-      aspect={aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio}
+      aspect={currentAspectRatio}
       className="max-w-full h-auto"
       locked={true}
     >
