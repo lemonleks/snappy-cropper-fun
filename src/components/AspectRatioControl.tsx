@@ -1,5 +1,4 @@
 import React from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -8,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type AspectRatioOption = {
   value: string;
@@ -16,11 +16,11 @@ export type AspectRatioOption = {
 };
 
 const aspectRatioOptions: AspectRatioOption[] = [
-  { value: "1:1", label: "Square (1:1)", ratio: 1 },
-  { value: "16:9", label: "Landscape (16:9)", ratio: 16 / 9 },
-  { value: "9:16", label: "Portrait (9:16)", ratio: 9 / 16 },
-  { value: "4:3", label: "Standard (4:3)", ratio: 4 / 3 },
-  { value: "3:4", label: "Portrait (3:4)", ratio: 3 / 4 },
+  { value: "1:1", label: "1:1", ratio: 1 },
+  { value: "16:9", label: "16:9", ratio: 16 / 9 },
+  { value: "9:16", label: "9:16", ratio: 9 / 16 },
+  { value: "4:3", label: "4:3", ratio: 4 / 3 },
+  { value: "3:4", label: "3:4", ratio: 3 / 4 },
 ];
 
 interface AspectRatioControlProps {
@@ -38,18 +38,19 @@ export const AspectRatioControl: React.FC<AspectRatioControlProps> = ({
     return (
       <div className="space-y-2">
         <Label className="text-xs">Aspect Ratio</Label>
-        <Select value={value} onValueChange={onChange}>
-          <SelectTrigger className="h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
+        <Tabs value={value} onValueChange={onChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
             {aspectRatioOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
+              <TabsTrigger
+                key={option.value}
+                value={option.value}
+                className="text-xs px-2"
+              >
                 {option.label}
-              </SelectItem>
+              </TabsTrigger>
             ))}
-          </SelectContent>
-        </Select>
+          </TabsList>
+        </Tabs>
       </div>
     );
   }
@@ -57,18 +58,15 @@ export const AspectRatioControl: React.FC<AspectRatioControlProps> = ({
   return (
     <div className="space-y-3">
       <Label>Aspect Ratio</Label>
-      <RadioGroup
-        value={value}
-        onValueChange={onChange}
-        className="grid grid-cols-2 gap-2"
-      >
-        {aspectRatioOptions.map((option) => (
-          <div key={option.value} className="flex items-center space-x-2">
-            <RadioGroupItem value={option.value} id={option.value} />
-            <Label htmlFor={option.value}>{option.label}</Label>
-          </div>
-        ))}
-      </RadioGroup>
+      <Tabs value={value} onValueChange={onChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          {aspectRatioOptions.map((option) => (
+            <TabsTrigger key={option.value} value={option.value}>
+              {option.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </div>
   );
 };

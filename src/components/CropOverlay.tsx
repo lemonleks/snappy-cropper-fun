@@ -50,19 +50,20 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
     onCropChange(newCrop as PixelCrop);
   };
 
+  // Reset crop when aspect ratio changes
   useEffect(() => {
-    setInitialCrop();
+    if (imgRef.current?.complete) {
+      setInitialCrop();
+    }
   }, [aspect]);
-
-  const handleCropChange = (newCrop: Crop, pixelCrop: PixelCrop) => {
-    setCrop(pixelCrop);
-    onCropChange(pixelCrop);
-  };
 
   return (
     <ReactCrop
       crop={crop}
-      onChange={handleCropChange}
+      onChange={(_, pixelCrop) => {
+        setCrop(pixelCrop);
+        onCropChange(pixelCrop);
+      }}
       aspect={aspect}
       locked={true}
       keepSelection
