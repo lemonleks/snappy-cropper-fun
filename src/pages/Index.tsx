@@ -47,58 +47,160 @@ const Index = () => {
     console.log(`Crop updated for image ${id}:`, crop);
   };
 
+  const createImage = (url: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", (error) => reject(error));
+      image.src = url;
+    });
+
+  const getCroppedImg = async (
+    sourceImage: HTMLImageElement,
+    crop: PixelCrop,
+    fileName: string
+  ): Promise<Blob> => {
+    console.log("=== Starting getCroppedImg ===");
+    console.log("Original image dimensions:", {
+      naturalWidth: sourceImage.naturalWidth,
+      naturalHeight: sourceImage.naturalHeight,
+      displayWidth: sourceImage.width,
+      displayHeight: sourceImage.height,
+    });
+    console.log("Crop parameters:", crop);
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error("No 2d context");
+    }
+
+    // Get the actual displayed image size from the DOM
+    const displayedImage = document.querySelector(
+      `img[src="${sourceImage.src}"]`
+    ) as HTMLImageElement;
+
+    if (!displayedImage) {
+      throw new Error("Could not find displayed image");
+    }
+
+    console.log("Displayed image size:", {
+      width: displayedImage.width,
+      height: displayedImage.height,
+    });
+
+    // Calculate the actual scaling ratio based on the displayed size
+    const ratio = sourceImage.naturalWidth / displayedImage.width;
+    console.log("Scaling ratio:", ratio);
+
+    // Convert percentage to pixels if needed
+    let cropX, cropY, cropWidth, cropHeight;
+
+    if (crop.unit === "%") {
+      cropX = (crop.x * displayedImage.width) / 100;
+      cropY = (crop.y * displayedImage.height) / 100;
+      cropWidth = (crop.width * displayedImage.width) / 100;
+      cropHeight = (crop.height * displayedImage.height) / 100;
+    } else {
+      cropX = crop.x;
+      cropY = crop.y;
+      cropWidth = crop.width;
+      cropHeight = crop.height;
+    }
+
+    // Calculate crop dimensions at full resolution
+    const actualCropX = Math.round(cropX * ratio);
+    const actualCropY = Math.round(cropY * ratio);
+    const actualCropWidth = Math.round(cropWidth * ratio);
+    const actualCropHeight = Math.round(cropHeight * ratio);
+
+    console.log("Calculated crop dimensions:", {
+      x: actualCropX,
+      y: actualCropY,
+      width: actualCropWidth,
+      height: actualCropHeight,
+    });
+
+    // Set canvas size to the cropped dimensions
+    canvas.width = actualCropWidth;
+    canvas.height = actualCropHeight;
+
+    // Draw the cropped portion directly from the source image
+    ctx.drawImage(
+      sourceImage,
+      actualCropX,
+      actualCropY,
+      actualCropWidth,
+      actualCropHeight,
+      0,
+      0,
+      actualCropWidth,
+      actualCropHeight
+    );
+
+    // Convert canvas to blob
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            console.error("Failed to create blob");
+            reject(new Error("Canvas is empty"));
+            return;
+          }
+          console.log("Created blob:", {
+            size: blob.size,
+            type: blob.type,
+          });
+          console.log("=== Finished getCroppedImg ===");
+          resolve(blob);
+        },
+        format,
+        format === "image/png" ? undefined : quality / 100
+      );
+    });
+  };
+
   const handleDownload = async () => {
     try {
       for (const image of images) {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const img = new Image();
+        if (!image.crop) {
+          // If no crop, save the original image
+          const response = await fetch(image.url);
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${image.file.name.split(".")[0]}.${
+            format.split("/")[1]
+          }`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          continue;
+        }
 
-        img.src = image.url;
-        await new Promise((resolve) => {
-          img.onload = () => {
-            if (image.crop) {
-              canvas.width = image.crop.width;
-              canvas.height = image.crop.height;
-              ctx?.drawImage(
-                img,
-                image.crop.x,
-                image.crop.y,
-                image.crop.width,
-                image.crop.height,
-                0,
-                0,
-                image.crop.width,
-                image.crop.height
-              );
-            } else {
-              canvas.width = img.width;
-              canvas.height = img.height;
-              ctx?.drawImage(img, 0, 0);
-            }
+        // For cropped images
+        const sourceImage = await createImage(image.url);
+        const croppedBlob = await getCroppedImg(
+          sourceImage,
+          image.crop,
+          image.file.name
+        );
 
-            canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `${image.file.name.split(".")[0]}.${
-                    format.split("/")[1]
-                  }`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }
-                resolve(null);
-              },
-              format,
-              format === "image/png" ? undefined : quality / 100
-            );
-          };
-        });
+        const url = URL.createObjectURL(croppedBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${image.file.name.split(".")[0]}_cropped.${
+          format.split("/")[1]
+        }`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
+
       toast.success("Images downloaded successfully");
     } catch (error) {
       console.error("Download error:", error);
