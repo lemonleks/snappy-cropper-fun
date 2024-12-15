@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { aspectRatioOptions } from './AspectRatioControl';
@@ -15,6 +15,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
   onCropChange,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
+  const [crop, setCrop] = useState<Crop>();
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget;
@@ -47,13 +48,14 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
       height: cropHeight
     };
 
+    setCrop(newCrop);
     onCropChange(newCrop as PixelCrop);
   };
 
   return (
     <ReactCrop
-      crop={undefined}
-      onChange={() => {}}
+      crop={crop}
+      onChange={(c) => setCrop(c)}
       onComplete={(c) => onCropChange(c)}
       aspect={aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio}
       className="max-w-full h-auto"
