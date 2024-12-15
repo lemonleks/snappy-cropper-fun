@@ -1,6 +1,13 @@
-import React from 'react';
+import React from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type AspectRatioOption = {
   value: string;
@@ -19,12 +26,34 @@ const aspectRatioOptions: AspectRatioOption[] = [
 interface AspectRatioControlProps {
   value: string;
   onChange: (value: string) => void;
+  compact?: boolean;
 }
 
 export const AspectRatioControl: React.FC<AspectRatioControlProps> = ({
   value,
   onChange,
+  compact = false,
 }) => {
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        <Label className="text-xs">Aspect Ratio</Label>
+        <Select value={value} onValueChange={onChange}>
+          <SelectTrigger className="h-8">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {aspectRatioOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <Label>Aspect Ratio</Label>

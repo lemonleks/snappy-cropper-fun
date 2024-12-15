@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
-import { aspectRatioOptions } from './AspectRatioControl';
+import React, { useRef, useState, useEffect } from "react";
+import ReactCrop, { Crop, PixelCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { aspectRatioOptions } from "./AspectRatioControl";
 
 interface CropOverlayProps {
   imageUrl: string;
@@ -17,70 +17,64 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
   const imgRef = useRef<HTMLImageElement>(null);
   const [crop, setCrop] = useState<Crop>();
 
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { width, height } = e.currentTarget;
-    console.log(`Image loaded with dimensions: ${width}x${height}`);
+  const aspect =
+    aspectRatioOptions.find((opt) => opt.value === defaultAspectRatio)?.ratio ||
+    1;
 
-    // If crop is already set, don't override it
-    if (crop) {
-      console.log('Crop already exists, keeping current crop:', crop);
-      return;
-    }
+  const setInitialCrop = () => {
+    if (!imgRef.current) return;
 
-    const aspectRatio = aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio || 1;
-    console.log('Using aspect ratio:', aspectRatio, 'from defaultAspectRatio:', defaultAspectRatio);
-    
-    // Calculate the maximum possible crop dimensions while maintaining aspect ratio
+    const { width, height } = imgRef.current;
     let cropWidth, cropHeight;
-    
-    if (width / height > aspectRatio) {
-      // Image is wider than the target ratio
+
+    if (width / height > aspect) {
       cropHeight = height;
-      cropWidth = height * aspectRatio;
+      cropWidth = height * aspect;
     } else {
-      // Image is taller than the target ratio
       cropWidth = width;
-      cropHeight = width / aspectRatio;
+      cropHeight = width / aspect;
     }
 
-    // Center the crop
     const x = (width - cropWidth) / 2;
     const y = (height - cropHeight) / 2;
 
-    const newCrop: Crop = {
-      unit: 'px',
+    const newCrop = {
+      unit: "px",
       x,
       y,
       width: cropWidth,
-      height: cropHeight
+      height: cropHeight,
     };
 
-    console.log('Setting initial crop:', newCrop);
     setCrop(newCrop);
     onCropChange(newCrop as PixelCrop);
   };
 
-  // Get current aspect ratio
-  const currentAspectRatio = aspectRatioOptions.find(opt => opt.value === defaultAspectRatio)?.ratio;
+  useEffect(() => {
+    setInitialCrop();
+  }, [aspect]);
+
+  const handleCropChange = (newCrop: Crop, pixelCrop: PixelCrop) => {
+    setCrop(pixelCrop);
+    onCropChange(pixelCrop);
+  };
 
   return (
     <ReactCrop
       crop={crop}
-      onChange={(c) => {
-        console.log('Crop changed:', c);
-        setCrop(c);
-        onCropChange(c);
-      }}
-      aspect={currentAspectRatio}
-      className="max-w-full h-auto"
+      onChange={handleCropChange}
+      aspect={aspect}
       locked={true}
+      keepSelection
+      style={{ maxWidth: "100%" }}
     >
       <img
         ref={imgRef}
         src={imageUrl}
         alt="Crop preview"
-        onLoad={handleImageLoad}
-        className="max-w-full h-auto"
+        onLoad={setInitialCrop}
+        style={{ maxWidth: "100%", display: "block" }}
+        draggable={false}
       />
     </ReactCrop>
   );

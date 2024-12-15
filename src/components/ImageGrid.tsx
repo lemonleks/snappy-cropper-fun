@@ -1,22 +1,22 @@
-import React from 'react';
-import { CropOverlay } from './CropOverlay';
-import { PixelCrop } from 'react-image-crop';
-import { toast } from "sonner";
+import React from "react";
+import { CropOverlay } from "./CropOverlay";
+import { PixelCrop } from "react-image-crop";
+import { AspectRatioControl } from "./AspectRatioControl";
 
 interface ImageGridProps {
-  images: { id: string; url: string; file: File }[];
+  images: { id: string; url: string; file: File; aspectRatio?: string }[];
   onImageClick: (id: string) => void;
-  aspectRatio: string;
   onCropChange: (id: string, crop: PixelCrop) => void;
+  onAspectRatioChange: (id: string, ratio: string) => void;
   interactedImages: Set<string>;
 }
 
 export const ImageGrid: React.FC<ImageGridProps> = ({
   images,
   onImageClick,
-  aspectRatio,
   onCropChange,
-  interactedImages
+  onAspectRatioChange,
+  interactedImages,
 }) => {
   if (images.length === 0) {
     return (
@@ -37,11 +37,18 @@ export const ImageGrid: React.FC<ImageGridProps> = ({
           <div className="p-2 text-sm text-gray-600 truncate border-b">
             {image.file.name}
           </div>
-          <div className="relative w-full">
+          <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
             <CropOverlay
               imageUrl={image.url}
-              defaultAspectRatio={interactedImages.has(image.id) ? aspectRatio : "1:1"}
+              defaultAspectRatio={image.aspectRatio || "1:1"}
               onCropChange={(crop) => onCropChange(image.id, crop)}
+            />
+          </div>
+          <div className="p-2 border-t" onClick={(e) => e.stopPropagation()}>
+            <AspectRatioControl
+              value={image.aspectRatio || "1:1"}
+              onChange={(ratio) => onAspectRatioChange(image.id, ratio)}
+              compact={true}
             />
           </div>
         </div>
