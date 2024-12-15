@@ -11,6 +11,7 @@ import {
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import { PixelCrop } from "react-image-crop";
+import JSZip from "jszip";
 
 interface ImageData {
   id: string;
@@ -163,49 +164,68 @@ const Index = () => {
 
   const handleDownload = async () => {
     try {
-      for (const image of images) {
-        if (!image.crop) {
-          // If no crop, save the original image
-          const response = await fetch(image.url);
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `${image.file.name.split(".")[0]}.${
-            format.split("/")[1]
-          }`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          continue;
-        }
-
-        // For cropped images
-        const sourceImage = await createImage(image.url);
-        const croppedBlob = await getCroppedImg(
-          sourceImage,
-          image.crop,
-          image.file.name
-        );
-
-        const url = URL.createObjectURL(croppedBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${image.file.name.split(".")[0]}_cropped.${
-          format.split("/")[1]
-        }`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      // If only one image, download directly
+      if (images.length === 1) {
+        const image = images[0];
+        await downloadSingleImage(image);
+        return;
       }
+
+      // For multiple images, create a ZIP
+      const zip = new JSZip();
+
+      for (const image of images) {
+        const blob = image.crop
+          ? await getCroppedImg(
+              await createImage(image.url),
+              image.crop,
+              image.file.name
+            )
+          : await fetch(image.url).then((r) => r.blob());
+
+        const fileName = `${image.file.name.split(".")[0]}${
+          image.crop ? "_cropped" : ""
+        }.${format.split("/")[1]}`;
+
+        zip.file(fileName, blob);
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cropped_images.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
       toast.success("Images downloaded successfully");
     } catch (error) {
       console.error("Download error:", error);
       toast.error("Error downloading images");
     }
+  };
+
+  const downloadSingleImage = async (image: ImageData) => {
+    const blob = image.crop
+      ? await getCroppedImg(
+          await createImage(image.url),
+          image.crop,
+          image.file.name
+        )
+      : await fetch(image.url).then((r) => r.blob());
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${image.file.name.split(".")[0]}${
+      image.crop ? "_cropped" : ""
+    }.${format.split("/")[1]}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleAspectRatioChange = (id: string, ratio: string) => {
