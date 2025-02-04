@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# Snappy Cropper
+
+Tool for batch image cropping.
 
 ## Project info
 
